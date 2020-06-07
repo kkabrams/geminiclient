@@ -1,0 +1,24 @@
+gemini is some protocol that lies between gopher and http.
+and also a file format that's somewhere between text/plain and markdown
+
+https://gemini.circumlunar.space/ read more about it here.
+
+Requires uritools for uricut and html_entities_decode.
+
+git://thebackupbox.net/uritools
+git://thebackupbox.net/html_entities_decode
+
+But html_entities_decode isn't important.
+
+uristart is used by the "gemini" script to launch a file:// URI of the cached file.
+uristart expects a file in ~/.config/uristart.conf
+The included lines for gemini schemed URIs and file schemed URIs will need a mimetype.conf
+file in ~/.config
+
+You can grep for it and replace it with whatever you think looks good.
+
+Also uses dmenu and ncat --ssl.
+
+You should be able to grep for and replace those with whatever you like to use.
+
+If you swap ncat --ssl for openssl s_client, be sure to use -quiet or -ign_eof (which -quiet implies)
