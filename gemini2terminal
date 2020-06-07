@@ -1,0 +1,30 @@
+#!/bin/sh
+printf "client side idea of our URI: <%s>. header: " "$gemini_uri"
+domain="$(printf "%s\n" "$gemini_uri" | uricut -d)"
+scheme="$(printf "%s\n" "$gemini_uri" | uricut -s)"
+path="$(printf "%s\n" "$gemini_uri" | uricut -p)"
+#most_of_path="$(dirname -- "$(printf "%s\n" "$gemini_uri" | uricut -p)" | sed 's|^\.||g')"
+most_of_path="$(printf "%s\n" "$gemini_uri" | uricut -p | rev | cut -d/ -f2- | rev)"
+### to do this... first.
+### we convert the fragment ID links to absolutes based on the gemini_uri
+
+### this is the verbose version.
+#sed \
+#'s|^=>[ \t]*\([A-Za-z][A-Za-z+.-]*:[^ \t]*\)|[link] \1 (absolute) \1|g
+#s|^=>[ \t]*\(#[^ \t]*\)|[link] \1 (fragmentid_relative) '"${gemini_uri}"'\1|g
+#s|^=>[ \t]*\(?[^ \t]*\)|[link] \1 (querystring_relative) '"$scheme"'://'"$domain""$path"'\1|g
+#s|^=>[ \t]*\(//[^ \t]*\)|[link] \1 (scheme_relative) '"$scheme"':\1|g
+#s|^=>[ \t]*\(/[^ \t]*\)|[link] \1 (absolute_path) '"$scheme"'://'"$domain"'\1|g
+#s|^=>[ \t]*\([^ \t]*\)|[link] \1 (same-dir path relative) '"$scheme"'://'"$domain""$most_of_path"'/\1|g
+#s|^=>[ \t]*\(.*\)|[link] \1 UNHANDLED \1|g
+#s|^* |  '"$(printf "&bull;" | html_entities_decode)"'|g'
+sed \
+'s|^=>[ \t]*\([A-Za-z][A-Za-z+.-]*:[^ \t]*\)|[link] \1|g
+s|^=>[ \t]*\(#[^ \t]*\)|[link] '"${gemini_uri}"'\1|g
+s|^=>[ \t]*\(?[^ \t]*\)|[link] '"$scheme"'://'"$domain""$path"'\1|g
+s|^=>[ \t]*\(//[^ \t]*\)|[link] '"$scheme"':\1|g
+s|^=>[ \t]*\(/[^ \t]*\)|[link] '"$scheme"'://'"$domain"'\1|g
+s|^=>[ \t]*\([^ \t]*\)|[link] '"$scheme"'://'"$domain""$most_of_path"'/\1|g
+s|^=>[ \t]*\(.*\)|[link] \1 UNHANDLED \1|g
+s|^\(##*\) \(.*\)$|\1'"$(printf "\x1b[1m")"'\2'"$(printf "\x1b[0m")"'|g
+s|^* |  '"$(printf "&bull;" | html_entities_decode)"' |g'

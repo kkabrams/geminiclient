@@ -1,0 +1,52 @@
+#!/bin/sh
+
+if [ "$#" -lt 3 ];then
+  printf "usage: URI domain port\n"
+  exit 1
+fi
+
+export gemini_uri="$1"
+uri="$1"
+host="$2"
+port="$3"
+path="$4"
+
+echo "args: $@" >&2
+
+if [ "$3" = "" ];then
+  port=1965
+else
+  port=$3
+fi
+
+mkdir -p "${PREFIX}/var/cache/gemini"
+
+cachename="${PREFIX}/var/cache/gemini/$(printf "%s\n" "$uri" | tr '\n' '\0' | xargs -0 uriescape | sed 's|/|%2f|g' | sed 's|?|%3f|g')"
+
+#if [ ! -e "$cachename" ];then #if the cache doesn't exist, make it.
+  printf '%s\r\n' "$uri" | ncat --no-shutdown --ssl "$host" "$port" > "$cachename"
+#fi
+#cat "$cachename"
+code="$(head -n1 "$cachename" | tr -d '\r' | tr '\t' ' ' | tr -s ' ' | cut '-d ' -f1)"
+meta="$(head -n1 "$cachename" | tr -d '\r' | tr '\t' ' ' | tr -s ' ' | cut '-d ' -f2-)"
+mimetype
+while [ "$code" = 10 ];do
+  query="$(uriescape "$(echo | dmenu -p "$meta")" | sed 's|?|%3f|g')"
+  if [ ! "$query" ];then #don't bother sending an empty query
+    exit 1
+  fi
+  ## update the URI with the query string...
+  uri="${uri}?${query}"
+  cachename="${PREFIX}/var/cache/gemini/$(printf "%s\n" "$uri" | tr '\n' '\0' | xargs -0 uriescape | sed 's|/|%2f|g' | sed 's|?|%3f|g')"
+  ## re-send the request...
+  printf '%s\r\n' "$uri" | ncat --no-shutdown --ssl "$host" "$port" > "$cachename"
+  code="$(head -n1 "$cachename" | tr '\t' ' ' | tr -s ' ' | cut '-d ' -f1)"
+  mimetype="$(head -n1 "$cachename" | tr '\t' ' ' | tr -s ' ' | cut '-d ' -f2-)"
+done
+if [ "$code" != 20 ];then
+  xmessage "gemini failed for some reason. file: $cachename code: $(head -n1 "$cachename") $code"
+  exit 1
+fi
+mimetype="$(printf "%s\n" "$meta" | tr ';' ' ' | cut '-d ' -f1)"
+uristart "$(printf "file://%s?mime-type=%s\n" "$cachename" "$mimetype")"
+rm "$cachename" #ha. who needs cache?
