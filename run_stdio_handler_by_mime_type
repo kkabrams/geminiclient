@@ -1,0 +1,18 @@
+#!/bin/bash
+
+### this script is temporary
+### how long until I get around to removing this?
+
+case "$1" in
+text/plain)
+  x-terminal-emulator -e less -f <(nonblocktail /dev/stdin)
+  exit 0
+  ;;
+audio/*)
+  mpv -
+  exit 0
+  ;;
+*)
+  exit 1
+  ;;
+esac

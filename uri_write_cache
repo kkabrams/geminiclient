@@ -1,0 +1,6 @@
+#!/bin/sh
+uri="$1"
+mkdir -p ${PREFIX}/.local/cache/uri
+filename=${PREFIX}/.local/cache/uri/"$(printf "%s\n" "$uri" | sha256sum | cut '-d ' -f1)"
+cat > "$filename"
+printf "file://%s\n" "$filename"
