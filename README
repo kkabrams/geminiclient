@@ -1,3 +1,18 @@
+same uritools dep as old version.
+
+this time I split apart the handling of the requesting
+and the handling of the response.
+
+gemini-get will just send the network request to the right place
+and output the whole thing (header included) to stdout.
+
+gemini-message-handler reads a "message/gemini" from stdin
+and then attempts to launch a stream-handler if it can for the mime-type
+if it fails, it caches the response into a file and uses uristart
+to launch a program to handle the file:///?mime-type= URI
+
+----- old stuff below. some of it still useful. -----
+
 gemini is some protocol that lies between gopher and http.
 and also a file format that's somewhere between text/plain and markdown
 

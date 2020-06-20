@@ -1,0 +1,21 @@
+#!/bin/sh
+
+if [ ! "$1" ];then
+  printf "usage: gemini-get gemini:uri\n"
+  printf "the output is to stdout and is in raw message/gemini format.\n"
+  exit 1
+fi
+
+uri="$1"
+
+host="$(printf "%s\n" "$uri" | uricut -d)"
+port="$(printf "%s\n" "$uri" | uricut -P)"
+
+if [ ! "$port" ];then
+  port=1965
+fi
+
+printf '%s\r\n' "$uri" \
+  | openssl s_client -servername "$host" -quiet -connect "$host":"$port" \
+ 2>/dev/null
+echo $?

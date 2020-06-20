@@ -1,5 +1,5 @@
 #!/bin/sh
-printf "client side idea of our URI: <%s>. header: " "$gemini_uri"
+set_terminal_title "$gemini_uri"
 domain="$(printf "%s\n" "$gemini_uri" | uricut -d)"
 scheme="$(printf "%s\n" "$gemini_uri" | uricut -s)"
 path="$(printf "%s\n" "$gemini_uri" | uricut -p)"

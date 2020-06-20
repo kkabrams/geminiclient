@@ -1,0 +1,3 @@
+#!/bin/sh
+export gemini_uri="$1" #this var is used by subprocesses of gemini-message-handler
+gemini-get "$gemini_uri" | gemini-message-handler "$gemini_uri"

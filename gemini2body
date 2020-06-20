@@ -1,0 +1,65 @@
+#!/bin/bash
+
+if [ "$#" -lt 3 ];then
+  printf "usage: URI domain port\n"
+  exit 1
+fi
+
+export gemini_uri="$1"
+uri="$1"
+host="$2"
+port="$3"
+path="$4"
+
+echo "args: $@" >&2
+
+if [ "$3" = "" ];then
+  port=1965
+else
+  port=$3
+fi
+
+mkdir -p "${PREFIX}/var/cache/gemini"
+
+cachename="${PREFIX}/var/cache/gemini/$(printf "%s\n" "$uri" | tr '\n' '\0' | xargs -0 uriescape | sed 's|/|%2f|g' | sed 's|?|%3f|g')"
+
+
+echo $uri $host $port
+#if [ ! -e "$cachename" ];then #if the cache doesn't exist, make it.
+  printf '%s\r\n' "$uri" | openssl s_client -servername "$host" -quiet -connect "$host":"$port" 2>/dev/null > "$cachename"
+#fi
+echo "after the ncat"
+#cat "$cachename"
+code="$(head -n1 "$cachename" | tr -d '\r' | tr '\t' ' ' | tr -s ' ' | cut '-d ' -f1)"
+meta="$(head -n1 "$cachename" | tr -d '\r' | tr '\t' ' ' | tr -s ' ' | cut '-d ' -f2-)"
+
+  while [ "$code" = 10 ];do
+    query="$(uriescape "$(echo | dmenu -p "$meta")" | sed 's|?|%3f|g')"
+    if [ ! "$query" ];then #don't bother sending an empty query
+      exit 1
+    fi
+    ## update the URI with the query string...
+    uri="$(printf "%s\n" "${uri}" | cut -d? -f1)" #strip off the old query string first.
+    uri="${uri}?${query}"
+    cachename="${PREFIX}/var/cache/gemini/$(printf "%s\n" "$uri" | tr '\n' '\0' | xargs -0 uriescape | sed 's|/|%2f|g' | sed 's|?|%3f|g')"
+    ## re-send the request...
+    printf '%s\r\n' "$uri" | openssl s_client -servername "$host" -quiet -connect "$host":"$port" 2>/dev/null > "$cachename"
+    code="$(head -n1 "$cachename" | tr '\t' ' ' | tr -s ' ' | cut '-d ' -f1)"
+    mimetype="$(head -n1 "$cachename" | tr '\t' ' ' | tr -s ' ' | cut '-d ' -f2-)"
+  done
+
+echo "code: $code"
+
+if [ "$code" != 20 ];then
+  if [ "${code::1}" = 3 ];then
+   copy_start_nevermind.sh "$meta"
+   exit 0
+  fi
+  xmessage "gemini failed for some reason. file: $cachename code: $(head -n1 "$cachename") $code"
+  exit 1
+fi
+#mimetype="$(printf "%s\n" "$meta" | tr ';' ' ' | cut '-d ' -f1)"
+#the mimetype is part of the message/gemini data, we don't need to give a fuck about it yet.
+mimetype=message/gemini
+uristart "$(printf "file://%s?mime-type=%s\n" "$cachename" "$mimetype")"
+rm "$cachename" #ha. who needs cache?

@@ -1,0 +1,25 @@
+#!/bin/bash
+### WE DO NOT KNOW WTF THE URI IS SUPPOSED TO BE.
+
+export gemini_uri="$1"
+
+read -r header meta
+meta="$(printf "%s\n" "$meta" | tr -d '\r')"
+case "$header" in
+10)
+  resp="$(echo | dmenu -p "$meta")"
+  exec uristart "$(printf "%s\n" "$gemini_uri" | cut -d? -f1)"'?'"${resp}"
+  ;;
+20)
+  printf "mime-type: %s\n" "$meta"
+  if run_stdio_handler_by_mime_type "$meta";then
+    exit 0 #this worked, we're done.
+  else
+    ### it didn't work. time to save and launch a file-based handler
+    uristart "$(uri_write_cache)?mime-type=${meta}"
+  fi
+  ;;
+*)
+  printf "wtf '%s'\n" "$header"
+  ;;
+esac
