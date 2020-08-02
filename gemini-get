@@ -2,14 +2,21 @@
 
 if [ ! "$1" ];then
   printf "usage: gemini-get gemini:uri\n"
+  printf '   or: gemini-get gemini-proxy:uri\n'
   printf "the output is to stdout and is in raw message/gemini format.\n"
   exit 1
 fi
 
 uri="$1"
 
+scheme="$(printf "%s\n" "$uri" | uricut -s)"
+
 host="$(printf "%s\n" "$uri" | uricut -d)"
 port="$(printf "%s\n" "$uri" | uricut -P)"
+
+if [ "$scheme" = "gemini-proxy" ];then
+  uri="$(uriescape "$(uriunescape "$(printf "%s\n" "$uri" | uricut -p | cut -b2-)")")"
+fi
 
 if [ ! "$port" ];then
   port=1965
@@ -18,4 +25,4 @@ fi
 printf '%s\r\n' "$uri" \
   | openssl s_client -servername "$host" -quiet -connect "$host":"$port" \
  2>/dev/null
-echo $?
+#echo $?
