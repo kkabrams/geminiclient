@@ -64,7 +64,7 @@ int main(int argc,char *argv[]) {
       printf("<a href=\"%s\">%s</a>%s%s",first,second,pre?"":"<br/>",LINE_ENDING);
       continue;
     }
-    printf("%s<br/>%s",line,LINE_ENDING);
+    printf("%s%s%s",line,pre?"":"<br/>",LINE_ENDING);
   }
   if(list) printf("</ul>%s",LINE_ENDING);
   if(pre) printf("</pre>%s",LINE_ENDING);//gemini doesn't need it to be balanced, so we'll close it for html's sake.
