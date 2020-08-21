@@ -1,7 +1,10 @@
 PREFIX:=/usr/local
 
-install:
+all: gemini2html
+
+install: all
 	install -t $(PREFIX)/bin gemini2terminal
+	install -t $(PREFIX)/bin gemini2html
 	install -t $(PREFIX)/bin gemini-handler
 	install -t $(PREFIX)/bin gemini-get
 	install -t $(PREFIX)/bin gemini-message-handler
