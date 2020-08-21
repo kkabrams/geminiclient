@@ -61,7 +61,7 @@ int main(int argc,char *argv[]) {
         second=first;
       }
       //need to encode the html entities for < > and "...
-      printf("<a href=\"%s\">%s</a><br/>%s",first,second,LINE_ENDING);
+      printf("<a href=\"%s\">%s</a>%s%s",first,second,pre?"":"<br/>",LINE_ENDING);
       continue;
     }
     printf("%s<br/>%s",line,LINE_ENDING);
